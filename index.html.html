@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's Your Interior Design Style? | Free Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,300;1,700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFBF5;
+    --ink: #1A1208;
+    --pop: #E8522A;
+    --pop-light: #FFF0EC;
+    --sun: #F5C842;
+    --sage: #5A8C6E;
+    --sage-light: #EBF4EE;
+    --sand: #E8DDD0;
+    --mid: #6B5C4E;
+    --light: #9A8878;
+    --border: #EAE0D5;
+    --card: #FFFFFF;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; overflow-x:hidden; }
+
+  /* BLOBS */
+  .blob { position:fixed; border-radius:50%; filter:blur(80px); opacity:0.3; pointer-events:none; z-index:0; }
+  .blob-1 { width:400px; height:400px; background:var(--sun); top:-100px; right:-100px; }
+  .blob-2 { width:350px; height:350px; background:#D4E8C4; bottom:-80px; left:-80px; }
+  .blob-3 { width:220px; height:220px; background:#F5C4B0; top:40%; left:15%; }
+
+  .quiz-wrap { position:relative; z-index:1; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; }
+
+  .screen { display:none; width:100%; max-width:700px; }
+  .screen.active { display:block; animation:popIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  @keyframes popIn { from { opacity:0; transform:scale(0.94) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
+  /* ── INTRO ── */
+  .intro-card {
+    background:var(--card);
+    border-radius:28px;
+    padding:48px 48px 40px;
+    box-shadow:0 20px 60px rgba(26,18,8,0.1), 0 0 0 1px var(--border);
+    position:relative;
+    overflow:hidden;
+  }
+  .intro-card::before { content:''; position:absolute; top:0; left:0; right:0; height:6px; background:linear-gradient(90deg,var(--pop),var(--sun),var(--sage),#9B7EC8); }
+
+  .intro-top { text-align:center; margin-bottom:36px; }
+  .intro-emoji { font-size:56px; display:block; margin-bottom:16px; animation:bounce 2s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .intro-eyebrow { display:inline-block; background:var(--pop-light); color:var(--pop); font-size:11px; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; padding:5px 14px; border-radius:100px; margin-bottom:16px; }
+  .intro-card h1 { font-family:'Fraunces',serif; font-size:clamp(26px,4.5vw,42px); font-weight:900; line-height:1.1; margin-bottom:12px; }
+  .intro-card h1 em { font-style:italic; color:var(--pop); }
+  .intro-desc { font-size:15px; color:var(--mid); line-height:1.7; max-width:480px; margin:0 auto 28px; font-weight:400; }
+
+  /* STYLE TEASER STRIP */
+  .style-teaser { margin-bottom:32px; }
+  .teaser-label { font-size:11px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:var(--mid); margin-bottom:14px; text-align:center; }
+  .teaser-scroll { display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; justify-content:center; flex-wrap:wrap; }
+  .teaser-scroll::-webkit-scrollbar { display:none; }
+  .teaser-pill {
+    display:flex; align-items:center; gap:7px;
+    padding:7px 14px;
+    border-radius:100px;
+    border:1.5px solid var(--border);
+    background:var(--bg);
+    font-size:12.5px; font-weight:700; color:var(--mid);
+    white-space:nowrap;
+    transition:all 0.2s;
+    cursor:default;
+  }
+  .teaser-pill:hover { border-color:var(--pop); color:var(--pop); background:var(--pop-light); }
+  .teaser-pill .pill-emoji { font-size:16px; }
+  .teaser-more { font-size:12px; color:var(--light); align-self:center; font-weight:600; flex-shrink:0; }
+
+  .fun-facts { display:flex; justify-content:center; gap:20px; margin-bottom:32px; flex-wrap:wrap; }
+  .fun-fact { display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:var(--mid); }
+  .fun-fact-icon { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; background:var(--sage-light); }
+
+  .btn-start { display:inline-block; background:var(--pop); color:white; font-family:'Nunito',sans-serif; font-size:17px; font-weight:800; padding:17px 48px; border-radius:100px; border:none; cursor:pointer; transition:transform 0.2s, box-shadow 0.2s; box-shadow:0 6px 20px rgba(232,82,42,0.35); width:100%; }
+  .btn-start:hover { transform:translateY(-3px) scale(1.02); box-shadow:0 12px 30px rgba(232,82,42,0.4); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { margin-bottom:24px; display:flex; align-items:center; gap:14px; }
+  .progress-track { flex:1; height:8px; background:var(--border); border-radius:100px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:100px; background:linear-gradient(90deg,var(--pop),var(--sun)); transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  .progress-label { font-size:12px; font-weight:800; color:var(--mid); white-space:nowrap; }
+
+  /* ── QUESTION ── */
+  .q-card { background:var(--card); border-radius:20px; padding:40px 40px 32px; box-shadow:0 12px 40px rgba(26,18,8,0.08), 0 0 0 1px var(--border); position:relative; overflow:hidden; }
+  .q-card::before { content:''; position:absolute; top:0; left:0; right:0; height:5px; background:linear-gradient(90deg,var(--pop),var(--sun),var(--sage)); }
+  .q-number { display:inline-block; background:var(--sun); color:var(--ink); font-size:11px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; padding:5px 14px; border-radius:100px; margin-bottom:14px; }
+  .q-text { font-family:'Fraunces',serif; font-size:clamp(19px,3vw,26px); font-weight:700; line-height:1.25; margin-bottom:6px; }
+  .q-subtext { font-size:13.5px; color:var(--mid); margin-bottom:24px; font-weight:400; }
+
+  .answers { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media(max-width:500px){ .answers{ grid-template-columns:1fr; } }
+
+  .answer-btn { background:var(--bg); border:2px solid var(--border); border-radius:14px; padding:16px 18px; cursor:pointer; text-align:left; transition:all 0.2s; display:flex; align-items:flex-start; gap:10px; font-family:'Nunito',sans-serif; }
+  .answer-btn:hover { border-color:var(--pop); background:var(--pop-light); transform:translateY(-2px); box-shadow:0 5px 16px rgba(232,82,42,0.1); }
+  .answer-btn.selected { border-color:var(--pop); background:var(--pop-light); box-shadow:0 0 0 3px rgba(232,82,42,0.12); }
+  .answer-emoji { font-size:22px; flex-shrink:0; }
+  .answer-label { font-size:13.5px; font-weight:700; color:var(--ink); margin-bottom:2px; }
+  .answer-note { font-size:11.5px; color:var(--mid); line-height:1.4; font-weight:400; }
+
+  .q-nav { display:flex; justify-content:space-between; align-items:center; margin-top:24px; }
+  .btn-back { background:none; border:2px solid var(--border); color:var(--mid); font-family:'Nunito',sans-serif; font-size:13.5px; font-weight:700; padding:11px 22px; border-radius:100px; cursor:pointer; transition:all 0.2s; }
+  .btn-back:hover { border-color:var(--mid); color:var(--ink); }
+  .btn-next { background:var(--ink); color:white; font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; padding:13px 32px; border-radius:100px; border:none; cursor:pointer; transition:all 0.2s; opacity:0.3; pointer-events:none; }
+  .btn-next.enabled { opacity:1; pointer-events:all; }
+  .btn-next.enabled:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(26,18,8,0.2); }
+
+  /* ── EMAIL GATE ── */
+  .email-card { background:var(--card); border-radius:28px; padding:48px 44px; box-shadow:0 20px 60px rgba(26,18,8,0.1), 0 0 0 1px var(--border); text-align:center; position:relative; overflow:hidden; }
+  .email-card::before { content:''; position:absolute; top:0; left:0; right:0; height:6px; background:linear-gradient(90deg,var(--sage),var(--sun),var(--pop)); }
+  .email-teaser { display:inline-block; font-size:52px; margin-bottom:8px; animation:spin-slow 6s linear infinite; }
+  @keyframes spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .email-card h2 { font-family:'Fraunces',serif; font-size:clamp(22px,4vw,34px); font-weight:900; margin-bottom:10px; }
+  .email-card h2 em { font-style:italic; color:var(--pop); }
+  .email-card > p { font-size:14.5px; color:var(--mid); line-height:1.75; max-width:420px; margin:0 auto 28px; }
+  .email-form { display:flex; flex-direction:column; gap:10px; max-width:400px; margin:0 auto; }
+  .email-input { width:100%; padding:15px 20px; border:2px solid var(--border); border-radius:12px; font-family:'Nunito',sans-serif; font-size:14.5px; color:var(--ink); background:var(--bg); outline:none; transition:border-color 0.2s; }
+  .email-input:focus { border-color:var(--pop); }
+  .email-input::placeholder { color:#C0B0A0; }
+  .btn-reveal { background:var(--pop); color:white; font-family:'Nunito',sans-serif; font-size:15.5px; font-weight:800; padding:15px 32px; border-radius:100px; border:none; cursor:pointer; transition:all 0.2s; box-shadow:0 6px 20px rgba(232,82,42,0.3); }
+  .btn-reveal:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(232,82,42,0.4); }
+  .email-skip { font-size:12px; color:var(--mid); margin-top:2px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; background:none; border:none; font-family:'Nunito',sans-serif; }
+  .email-skip:hover { color:var(--ink); }
+  .email-privacy { font-size:11px; color:#C0B0A0; margin-top:10px; }
+
+  /* ── RESULT ── */
+  .result-card { background:var(--card); border-radius:28px; box-shadow:0 20px 60px rgba(26,18,8,0.1), 0 0 0 1px var(--border); overflow:hidden; }
+
+  /* Primary result hero with photo */
+  .result-photo-wrap { position:relative; height:280px; overflow:hidden; }
+  .result-photo { width:100%; height:100%; object-fit:cover; display:block; }
+  .result-photo-overlay { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%); }
+  .result-photo-badge { position:absolute; top:20px; left:24px; display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,0.18); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.3); border-radius:100px; padding:7px 16px; font-size:11px; font-weight:800; color:white; letter-spacing:0.1em; text-transform:uppercase; }
+  .result-photo-title { position:absolute; bottom:24px; left:24px; right:24px; }
+  .result-primary-label { font-size:11px; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; color:rgba(255,255,255,0.7); margin-bottom:6px; }
+  .result-photo-name { font-family:'Fraunces',serif; font-size:clamp(28px,5vw,44px); font-weight:900; color:white; line-height:1.05; text-shadow:0 2px 12px rgba(0,0,0,0.4); }
+  .result-photo-name em { font-style:italic; }
+
+  /* Percentage bars */
+  .result-percentages { padding:28px 32px; border-bottom:1px solid var(--border); }
+  .pct-label { font-size:11px; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; color:var(--mid); margin-bottom:18px; }
+  .pct-row { margin-bottom:14px; }
+  .pct-row:last-child { margin-bottom:0; }
+  .pct-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:7px; }
+  .pct-style-name { font-size:14px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:7px; }
+  .pct-style-emoji { font-size:16px; }
+  .pct-num { font-family:'Fraunces',serif; font-size:20px; font-weight:700; }
+  .pct-track { height:10px; background:var(--border); border-radius:100px; overflow:hidden; }
+  .pct-fill { height:100%; border-radius:100px; transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1); }
+  .pct-row.primary .pct-num { color:var(--pop); }
+  .pct-row.primary .pct-fill { background:linear-gradient(90deg,var(--pop),#F0844A); }
+  .pct-row.secondary .pct-num { color:var(--sage); }
+  .pct-row.secondary .pct-fill { background:linear-gradient(90deg,var(--sage),#7AB08E); }
+
+  /* Description */
+  .result-body { padding:28px 32px; }
+  .result-traits { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .trait { font-size:12px; font-weight:700; padding:6px 14px; border-radius:100px; background:var(--bg); border:1.5px solid var(--border); color:var(--mid); }
+  .result-desc { font-size:14.5px; color:var(--mid); line-height:1.8; margin-bottom:24px; font-weight:400; }
+
+  /* Secondary style mini card */
+  .secondary-blend { background:var(--bg); border:1.5px solid var(--border); border-radius:16px; padding:20px 22px; margin-bottom:24px; display:flex; gap:16px; align-items:flex-start; }
+  .secondary-photo { width:72px; height:72px; border-radius:10px; object-fit:cover; flex-shrink:0; }
+  .secondary-info {}
+  .secondary-top { font-size:10px; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; color:var(--sage); margin-bottom:5px; }
+  .secondary-name { font-family:'Fraunces',serif; font-size:18px; font-weight:700; color:var(--ink); margin-bottom:5px; }
+  .secondary-desc { font-size:12.5px; color:var(--mid); line-height:1.6; font-weight:400; }
+
+  /* Palette */
+  .palette-row { margin-bottom:24px; }
+  .palette-label { font-size:11px; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; color:var(--mid); margin-bottom:12px; }
+  .palette-swatches { display:flex; gap:10px; flex-wrap:wrap; }
+  .swatch-item { text-align:center; }
+  .swatch { width:48px; height:48px; border-radius:12px; box-shadow:0 3px 10px rgba(0,0,0,0.12); cursor:pointer; transition:transform 0.2s; display:block; margin-bottom:6px; }
+  .swatch:hover { transform:scale(1.1); }
+  .swatch-name { font-size:10px; font-weight:700; color:var(--mid); }
+  .swatch-hex { font-size:9.5px; color:var(--light); }
+
+  /* Mistake box */
+  .mistake-box { background:#FFF5F2; border:1.5px solid #FFD5C8; border-radius:14px; padding:18px 20px; margin-bottom:24px; }
+  .mistake-title { font-size:10px; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; color:var(--pop); margin-bottom:8px; }
+  .mistake-text { font-size:13px; color:var(--mid); line-height:1.7; font-weight:400; }
+
+  /* Signature pieces */
+  .pieces-label { font-size:11px; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; color:var(--mid); margin-bottom:12px; }
+  .pieces-list { list-style:none; margin-bottom:24px; }
+  .pieces-list li { font-size:13.5px; color:var(--mid); padding:8px 0; border-bottom:1px solid var(--border); display:flex; gap:10px; font-weight:400; }
+  .pieces-list li:last-child { border-bottom:none; }
+  .piece-dot { color:var(--pop); font-size:12px; flex-shrink:0; margin-top:2px; }
+
+  /* CTA */
+  .result-cta { margin:0 32px 36px; background:var(--ink); border-radius:18px; padding:28px 30px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .cta-eyebrow { font-size:10px; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; color:var(--sun); margin-bottom:5px; }
+  .cta-headline { font-family:'Fraunces',serif; font-size:18px; font-weight:700; color:white; line-height:1.3; }
+  .cta-sub { font-size:12px; color:rgba(255,255,255,0.55); margin-top:4px; }
+  .btn-cta { background:var(--pop); color:white; font-family:'Nunito',sans-serif; font-size:13.5px; font-weight:800; padding:13px 24px; border-radius:100px; border:none; cursor:pointer; white-space:nowrap; transition:all 0.2s; box-shadow:0 4px 14px rgba(232,82,42,0.4); }
+  .btn-cta:hover { transform:translateY(-2px); }
+
+  .btn-retake { display:block; text-align:center; font-size:13px; font-weight:700; color:var(--mid); padding:16px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; background:none; border:none; font-family:'Nunito',sans-serif; width:100%; margin-top:4px; }
+
+  @media(max-width:600px){
+    .intro-card,.email-card,.q-card{ padding:28px 22px 24px; }
+    .result-body,.result-percentages,.palette-row{ padding-left:22px; padding-right:22px; }
+    .result-cta{ margin:0 22px 28px; }
+    .result-photo-wrap{ height:220px; }
+  }
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="quiz-wrap">
+
+<!-- ══ INTRO ══ -->
+<div class="screen active" id="screen-intro">
+  <div class="intro-card">
+    <div class="intro-top">
+      <span class="intro-emoji">🏠</span>
+      <div class="intro-eyebrow">Free Design Quiz · 10 Styles</div>
+      <h1>What's Your Interior<br>Design <em>Style?</em></h1>
+      <p class="intro-desc">Answer 10 quick questions and discover which of these 10 design styles fits your home — and your personality. Created by a professional interior designer.</p>
+    </div>
+
+    <div class="style-teaser">
+      <div class="teaser-label">Could you be one of these?</div>
+      <div class="teaser-scroll">
+        <div class="teaser-pill"><span class="pill-emoji">🪴</span>Japandi</div>
+        <div class="teaser-pill"><span class="pill-emoji">🕯️</span>Scandinavian</div>
+        <div class="teaser-pill"><span class="pill-emoji">🏭</span>Industrial</div>
+        <div class="teaser-pill"><span class="pill-emoji">🌸</span>Cottage</div>
+        <div class="teaser-pill"><span class="pill-emoji">🎨</span>Eclectic</div>
+        <div class="teaser-pill"><span class="pill-emoji">🛋️</span>Mid-Century</div>
+        <div class="teaser-pill"><span class="pill-emoji">🌿</span>Bohemian</div>
+        <div class="teaser-pill"><span class="pill-emoji">🏛️</span>Classic</div>
+        <div class="teaser-pill"><span class="pill-emoji">✨</span>Contemporary Chic</div>
+        <div class="teaser-pill"><span class="pill-emoji">🌾</span>Country</div>
+      </div>
+    </div>
+
+    <div class="fun-facts">
+      <div class="fun-fact"><div class="fun-fact-icon">⚡</div>3 minutes</div>
+      <div class="fun-fact"><div class="fun-fact-icon">🎯</div>10 style results</div>
+      <div class="fun-fact"><div class="fun-fact-icon">🎁</div>Your personal blend</div>
+    </div>
+
+    <button class="btn-start" onclick="startQuiz()">Discover my style →</button>
+  </div>
+</div>
+
+<!-- ══ QUESTIONS ══ -->
+<div class="screen" id="screen-quiz">
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-label" id="progressLabel">1 of 10</div>
+  </div>
+  <div class="q-card">
+    <div class="q-number" id="qNumber">Question 1</div>
+    <div class="q-text" id="qText"></div>
+    <div class="q-subtext" id="qSubtext"></div>
+    <div class="answers" id="answersGrid"></div>
+    <div class="q-nav">
+      <button class="btn-back" id="btnBack" onclick="prevQuestion()">← Back</button>
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EMAIL GATE ══ -->
+<div class="screen" id="screen-email">
+  <div class="email-card">
+    <div class="email-teaser">✨</div>
+    <h2>Your style blend is <em>ready!</em></h2>
+    <p>Enter your email to reveal your personalised style result — including your unique style blend, a curated colour palette, and a free shopping guide delivered to your inbox.</p>
+    <div class="email-form">
+      <input type="text" class="email-input" id="nameInput" placeholder="Your first name" />
+      <input type="email" class="email-input" id="emailInput" placeholder="your@email.com" />
+      <button class="btn-reveal" onclick="revealResult()">Reveal my style blend! 🎉</button>
+      <button class="email-skip" onclick="skipEmail()">No thanks, just show my result</button>
+    </div>
+    <p class="email-privacy">🔒 No spam, ever. Unsubscribe any time.</p>
+  </div>
+</div>
+
+<!-- ══ RESULT ══ -->
+<div class="screen" id="screen-result">
+  <div class="result-card" id="resultCard"></div>
+  <button class="btn-retake" onclick="retakeQuiz()">↩ Retake the quiz</button>
+</div>
+
+</div><!-- end quiz-wrap -->
+
+<script>
+// ═══════════════════════════════════════
+// STYLE DEFINITIONS — 10 styles
+// ═══════════════════════════════════════
+const styles = {
+  japandi: {
+    name:"Japandi", emoji:"🪴", tagline:"Serenely Minimalist",
+    photo:"https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&auto=format&fit=crop",
+    desc:"You crave stillness and intention. Japandi — the beautiful fusion of Japanese wabi-sabi and Scandinavian hygge — is practically built for your soul. Every object earns its place. Natural textures do the talking. The result is a home that genuinely restores you rather than demanding your attention.",
+    traits:["Intentionally minimal","Natural textures","Warm neutrals","Wabi-sabi imperfection"],
+    palette:[{hex:"#C8B8A2",name:"Warm Linen"},{hex:"#4A5C4E",name:"Forest Moss"},{hex:"#8C7B6B",name:"Weathered Stone"}],
+    pieces:["A low-profile platform bed or sofa in pale oak","One oversized handmade ceramic vase (imperfect is perfect)","Linen curtains pooling slightly on the floor"],
+    mistake:"Buying 'minimal-looking' furniture that's actually cold and cheap. Japandi warmth comes from texture — linen, wood grain, aged clay — not from removing things."
+  },
+  scandi: {
+    name:"Scandinavian", emoji:"🕯️", tagline:"Hygge Heartwarmer",
+    photo:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&auto=format&fit=crop",
+    desc:"Your home is the place everyone wants to stay. You live by hygge — warmth, cosiness, and togetherness aren't luxuries, they're necessities. Soft light, natural wood, and layers of texture make every room feel like a hug you can walk into.",
+    traits:["Cosy & inviting","Light-filled","Functional beauty","Nature-inspired"],
+    palette:[{hex:"#F5F0E8",name:"Warm White"},{hex:"#A8C4A2",name:"Sage Mist"},{hex:"#D4B896",name:"Pale Pine"}],
+    pieces:["A boucle armchair with a throw draped over one arm","A solid pine dining table with mismatched chairs","Grouped candleholders at varying heights"],
+    mistake:"Making it too white and clinical. Real Scandi is warm, not a show home. Layer chunky knits, woven baskets, and aged wood or it'll feel like a hotel lobby."
+  },
+  industrial: {
+    name:"Industrial", emoji:"🏭", tagline:"Raw & Considered",
+    photo:"https://images.unsplash.com/photo-1565538810643-b5bdb974c9a0?w=900&auto=format&fit=crop",
+    desc:"You're drawn to authenticity and rawness — the beauty in exposed brick, worn steel, and things that don't pretend to be something they're not. Industrial style isn't rough for rough's sake; it's about honest materials used with intelligence and a strong editorial eye.",
+    traits:["Raw materials","Exposed structure","Dark contrast","Urban edge"],
+    palette:[{hex:"#3A3530",name:"Charcoal"},{hex:"#8C7B6B",name:"Warm Concrete"},{hex:"#B87A4A",name:"Aged Copper"}],
+    pieces:["An exposed steel pipe shelving unit with reclaimed wood","Edison-bulb pendant lights on cage fittings","A worn leather Chesterfield sofa"],
+    mistake:"Going so dark and heavy it becomes oppressive. Industrial style needs warmth anchors — a soft rug, warm-toned wood, plants — to stop it feeling like an empty warehouse."
+  },
+  cottage: {
+    name:"Cottage", emoji:"🌸", tagline:"Blooming & Beloved",
+    photo:"https://images.unsplash.com/photo-1588854337221-4cf9fa96059c?w=900&auto=format&fit=crop",
+    desc:"You want your home to feel like it's been loved for a very long time — sun-bleached linens, garden flowers in mismatched jugs, and windowsills that tell stories. Cottage style is unapologetically romantic and joyfully impractical in the best possible way.",
+    traits:["Romantic & floral","Sun-bleached softness","Layered & personal","Garden-inspired"],
+    palette:[{hex:"#E8D5C4",name:"Blush Plaster"},{hex:"#7A9C6E",name:"Garden Green"},{hex:"#F0E8D8",name:"Aged Cream"}],
+    pieces:["A painted wooden dresser with mismatched china displayed","Fresh or dried florals in ceramic jugs on every surface","Lace or embroidered linen cushions on a window seat"],
+    mistake:"Letting it tip into clutter. Cottage style is layered but curated — every piece should be loved, not just old. Edit ruthlessly and replace anything that doesn't bring you joy."
+  },
+  eclectic: {
+    name:"Eclectic", emoji:"🎨", tagline:"Boldly Curated",
+    photo:"https://images.unsplash.com/photo-1615529328331-f8917597711f?w=900&auto=format&fit=crop",
+    desc:"Rules? Lovely suggestion. Your home is a living autobiography — every room tells a story of where you've been, what you love, and who you are. The mid-century sideboard sits happily next to the Indian textile, and somehow it all works because YOU made it work.",
+    traits:["Boldly personal","Intentional mixing","Story-rich layers","Fearlessly expressive"],
+    palette:[{hex:"#E8522A",name:"Burnt Orange"},{hex:"#4A6B8C",name:"Teal Blue"},{hex:"#C4A84A",name:"Mustard Gold"}],
+    pieces:["One genuinely unexpected anchor piece that starts a conversation","A gallery wall mixing frames, sizes, eras, and mediums","At least one textile with real pattern or cultural provenance"],
+    mistake:"Buying random things you like and calling it eclectic. The difference between eclectic and chaotic is intention. You need one consistent thread — a colour, a material, a mood — tying it together."
+  },
+  midcentury: {
+    name:"Mid-Century Modern", emoji:"🛋️", tagline:"Retro with Purpose",
+    photo:"https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=900&auto=format&fit=crop",
+    desc:"You have an eye for the era when furniture first became art — the clean organic curves, the tapered legs, the belief that good design should be democratic and beautiful at once. Mid-century modern never goes out of style because it was never really 'in' style — it just IS.",
+    traits:["Organic curves","Tapered legs","Warm wood tones","Graphic accents"],
+    palette:[{hex:"#C4823A",name:"Walnut Warm"},{hex:"#4A7A6A",name:"Teal Green"},{hex:"#F5E8D0",name:"Cream Sand"}],
+    pieces:["A walnut credenza with splayed legs (the MCM centrepiece)","An Eames-era lounge chair or similar organic form","A sunburst or abstract wall clock as a focal point"],
+    mistake:"Making it a theme park. MCM works best when it's mixed — a genuine vintage piece or two alongside contemporary items, not a room that looks like a 1962 catalogue page."
+  },
+  bohemian: {
+    name:"Bohemian", emoji:"🌿", tagline:"Free-Spirited & Layered",
+    photo:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=900&auto=format&fit=crop",
+    desc:"Your home is a sanctuary of self-expression — layered textiles from every corner of the world, plants in every spare inch, and a deep commitment to the idea that more IS more when everything is meaningful. Bohemian style is about freedom, warmth, and absolute individuality.",
+    traits:["Globally inspired","Richly layered","Plant-filled","Textile-driven"],
+    palette:[{hex:"#C47840",name:"Terracotta"},{hex:"#7A6A9C",name:"Deep Violet"},{hex:"#4A8C6E",name:"Jungle Green"}],
+    pieces:["A macramé wall hanging or woven tapestry as a focal point","Stacked rugs — yes, rugs on top of rugs","Hanging plants at multiple heights from the ceiling"],
+    mistake:"Buying everything at once. Boho homes look lived-in because they actually are — built over years. Buying a 'boho set' all at once always looks flat. Collect slowly, layer intentionally."
+  },
+  classic: {
+    name:"Classic / Transitional", emoji:"🏛️", tagline:"Timelessly Elegant",
+    photo:"https://images.unsplash.com/photo-1600210492493-0946911123ea?w=900&auto=format&fit=crop",
+    desc:"Trends don't interest you — timelessness does. You choose things that will look as beautiful in 20 years as they do today. Quiet grandeur, quality craftsmanship, and a sense of considered symmetry define your space. Your home is the kind people describe as 'so put together' and mean it as the highest compliment.",
+    traits:["Timeless over trendy","Quality craftsmanship","Balanced symmetry","Quietly grand"],
+    palette:[{hex:"#C8B89A",name:"Antique Gold"},{hex:"#3D4A55",name:"Navy Slate"},{hex:"#F0EBE0",name:"Ivory"}],
+    pieces:["A pair of matching bedside tables or lamps (symmetry matters)","Proper lined curtains — floor-to-ceiling, hung high","One investment armchair in a subtle pattern or texture"],
+    mistake:"Playing it so safe it becomes beige. Classic has backbone — it's considered and confident, not timid and inoffensive. Don't be afraid of a deep wall colour or a patterned cushion."
+  },
+  contemporary: {
+    name:"Contemporary Chic", emoji:"✨", tagline:"Polished & Present",
+    photo:"https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=900&auto=format&fit=crop",
+    desc:"You want your home to feel like right now — current, considered, and quietly impressive. Contemporary chic isn't about chasing trends; it's about understanding what's happening in design and filtering it through exceptional taste. Your home looks like it could be in a magazine, but it actually feels like somewhere you live.",
+    traits:["Current & considered","Edited luxury","Texture play","Statement moments"],
+    palette:[{hex:"#2C2C2C",name:"Graphite"},{hex:"#E8E0D5",name:"Warm Stone"},{hex:"#8A7A6A",name:"Greige"}],
+    pieces:["One large-scale statement artwork (the room pivots around it)","A sculptural coffee table — form is as important as function","Layered lighting: ambient, task, and accent in every room"],
+    mistake:"Confusing contemporary with cold. The trap is all-grey, no texture, no warmth. Contemporary chic needs one unexpected warm element — a aged brass fitting, a tactile fabric, an organic shape — to stop it feeling corporate."
+  },
+  country: {
+    name:"Country", emoji:"🌾", tagline:"Warmly Grounded",
+    photo:"https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=900&auto=format&fit=crop",
+    desc:"You want your home to feel like it's been loved for generations — even if you only moved in last year. You're drawn to things with a story: the aged wooden beam, the linen washed a hundred times, the jug of wildflowers on the kitchen table. Deeply personal, impeccably warm, and smelling faintly of something baking.",
+    traits:["Warmly layered","Storied & authentic","Natural & handmade","Timeless comfort"],
+    palette:[{hex:"#C4846A",name:"Terracotta"},{hex:"#8B9E6A",name:"Sage Green"},{hex:"#E8D5BA",name:"Warm Cream"}],
+    pieces:["A scrubbed farmhouse kitchen table — the heart of the home","Aged terracotta pots of all sizes on every windowsill","A linen or patchwork quilt folded on a wooden chest"],
+    mistake:"Buying fake rustic — distressed furniture distressed in a factory, not by time. Country style is authentic or it's nothing. Secondhand shops and estate sales are where your style lives."
+  }
+};
+
+// ═══════════════════════════════════════
+// QUESTIONS — 10 questions, 4 answers each
+// Scores keyed to all 10 styles
+// ═══════════════════════════════════════
+const questions = [
+  {
+    text:"You walk into a new room. What do you notice first?",
+    subtext:"Go with your gut — there's no wrong answer.",
+    answers:[
+      {emoji:"☀️",label:"The light",note:"How bright, warm, or moody it feels",
+       scores:{japandi:2,scandi:2,industrial:0,cottage:1,eclectic:0,midcentury:1,bohemian:1,classic:0,contemporary:1,country:1}},
+      {emoji:"🪑",label:"The furniture shapes",note:"Silhouettes, materials, how it's arranged",
+       scores:{japandi:1,scandi:1,industrial:1,cottage:0,eclectic:1,midcentury:3,bohemian:0,classic:2,contemporary:2,country:0}},
+      {emoji:"🎨",label:"The colour & pattern",note:"The palette, the contrast, the whole vibe",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:2,eclectic:3,midcentury:1,bohemian:2,classic:1,contemporary:1,country:1}},
+      {emoji:"💫",label:"The feeling it gives",note:"Whether it makes you want to stay",
+       scores:{japandi:2,scandi:2,industrial:0,cottage:2,eclectic:1,midcentury:0,bohemian:2,classic:1,contemporary:0,country:2}}
+    ]
+  },
+  {
+    text:"Your dream sofa is...",
+    subtext:"Close your eyes and picture it. What do you see?",
+    answers:[
+      {emoji:"🪶",label:"Low, linen & minimal",note:"Natural fabric, close to the floor, simple clean lines",
+       scores:{japandi:3,scandi:1,industrial:0,cottage:0,eclectic:0,midcentury:0,bohemian:0,classic:0,contemporary:1,country:0}},
+      {emoji:"🧸",label:"Fluffy, boucle & cosy",note:"Chunky texture, you just want to sink into it",
+       scores:{japandi:0,scandi:3,industrial:0,cottage:1,eclectic:1,midcentury:0,bohemian:1,classic:0,contemporary:0,country:1}},
+      {emoji:"🛋️",label:"Curved with tapered legs",note:"Organic MCM shape, walnut base, clean upholstery",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:0,eclectic:1,midcentury:3,bohemian:0,classic:1,contemporary:2,country:0}},
+      {emoji:"🌹",label:"Velvet & statement",note:"A bold colour, a dramatic shape — conversation starter",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:0,eclectic:2,midcentury:1,bohemian:1,classic:2,contemporary:2,country:0}}
+    ]
+  },
+  {
+    text:"What's your relationship with clutter?",
+    subtext:"Honest answers only — your home knows the truth!",
+    answers:[
+      {emoji:"😤",label:"Physically stressed by it",note:"Every surface clear. Always. Non-negotiable.",
+       scores:{japandi:3,scandi:1,industrial:2,cottage:0,eclectic:0,midcentury:1,bohemian:0,classic:0,contemporary:2,country:0}},
+      {emoji:"😌",label:"A little is perfect",note:"Books, a candle, a plant. Lived-in is lovely.",
+       scores:{japandi:1,scandi:3,industrial:0,cottage:1,eclectic:0,midcentury:2,bohemian:0,classic:2,contemporary:1,country:1}},
+      {emoji:"🥰",label:"More layers = more soul",note:"Collected, curated, gloriously full of things I love",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:3,eclectic:2,midcentury:0,bohemian:3,classic:1,contemporary:0,country:2}},
+      {emoji:"🏭",label:"Raw and honest",note:"I like things exposed — pipes, beams, materials as they are",
+       scores:{japandi:0,scandi:0,industrial:3,cottage:0,eclectic:1,midcentury:0,bohemian:0,classic:0,contemporary:0,country:0}}
+    ]
+  },
+  {
+    text:"Pick a colour palette for your living room:",
+    subtext:"Which one makes your heart do a little happy dance?",
+    answers:[
+      {emoji:"🤍",label:"Stone, cream & warm grey",note:"Barely-there neutrals. Calm. Restrained.",
+       scores:{japandi:3,scandi:1,industrial:0,cottage:0,eclectic:0,midcentury:0,bohemian:0,classic:1,contemporary:2,country:0}},
+      {emoji:"🌿",label:"White, pine & sage green",note:"Fresh, clean, a breath of Nordic air",
+       scores:{japandi:1,scandi:3,industrial:0,cottage:2,eclectic:0,midcentury:0,bohemian:1,classic:0,contemporary:0,country:2}},
+      {emoji:"🔥",label:"Charcoal, brick & aged copper",note:"Dark, raw, dramatic — and proud of it",
+       scores:{japandi:0,scandi:0,industrial:3,cottage:0,eclectic:1,midcentury:1,bohemian:0,classic:0,contemporary:1,country:0}},
+      {emoji:"🎭",label:"Deep jewel tones & warm wood",note:"Rich, layered, globally inspired colour",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:1,eclectic:2,midcentury:2,bohemian:3,classic:2,contemporary:1,country:1}}
+    ]
+  },
+  {
+    text:"Your ideal floor underfoot is...",
+    subtext:"Think about how it looks AND how it feels.",
+    answers:[
+      {emoji:"🪵",label:"Pale raw wood",note:"Light oak or ash, natural and unfinished",
+       scores:{japandi:3,scandi:3,industrial:0,cottage:1,eclectic:0,midcentury:1,bohemian:1,classic:0,contemporary:0,country:1}},
+      {emoji:"⬛",label:"Polished concrete",note:"Cool, smooth, architectural. Very now.",
+       scores:{japandi:1,scandi:0,industrial:3,cottage:0,eclectic:0,midcentury:0,bohemian:0,classic:0,contemporary:2,country:0}},
+      {emoji:"🧱",label:"Stone flags or terracotta tiles",note:"Aged, imperfect, warm with a great rug",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:3,eclectic:1,midcentury:0,bohemian:2,classic:1,contemporary:0,country:3}},
+      {emoji:"🏛️",label:"Dark stained herringbone parquet",note:"Classic, elegant, quietly impressive",
+       scores:{japandi:0,scandi:0,industrial:1,cottage:0,eclectic:1,midcentury:2,bohemian:0,classic:3,contemporary:2,country:0}}
+    ]
+  },
+  {
+    text:"You need a new lamp. You reach for...",
+    subtext:"Your instinct, not what 'goes with everything'.",
+    answers:[
+      {emoji:"🏺",label:"A ceramic or stone base",note:"Hand-thrown, organic shape, linen shade",
+       scores:{japandi:3,scandi:2,industrial:0,cottage:2,eclectic:0,midcentury:0,bohemian:1,classic:0,contemporary:0,country:2}},
+      {emoji:"🔩",label:"Industrial cage or pipe fitting",note:"Edison bulb, metal housing, no nonsense",
+       scores:{japandi:0,scandi:0,industrial:3,cottage:0,eclectic:1,midcentury:1,bohemian:0,classic:0,contemporary:0,country:0}},
+      {emoji:"🌟",label:"A sculptural statement lamp",note:"Bold form, unexpected material, architectural",
+       scores:{japandi:0,scandi:1,industrial:0,cottage:0,eclectic:1,midcentury:2,bohemian:0,classic:1,contemporary:3,country:0}},
+      {emoji:"🪔",label:"A vintage brass or stained glass piece",note:"Has history, has character, has a story",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:2,eclectic:3,midcentury:2,bohemian:2,classic:2,contemporary:0,country:1}}
+    ]
+  },
+  {
+    text:"How do you feel about plants indoors?",
+    subtext:"Green things or no green things. Revealing!",
+    answers:[
+      {emoji:"🌱",label:"One or two, carefully placed",note:"A sculptural fig tree or single bonsai. Intentional.",
+       scores:{japandi:3,scandi:1,industrial:1,cottage:0,eclectic:0,midcentury:1,bohemian:0,classic:0,contemporary:1,country:0}},
+      {emoji:"🪴",label:"A few in every room",note:"Plants make a home. A fern here, a trailing vine there.",
+       scores:{japandi:1,scandi:3,industrial:0,cottage:2,eclectic:1,midcentury:0,bohemian:1,classic:0,contemporary:0,country:2}},
+      {emoji:"🌴",label:"The more the better",note:"It's basically a jungle and I love every leaf of it",
+       scores:{japandi:0,scandi:1,industrial:0,cottage:1,eclectic:2,midcentury:0,bohemian:3,classic:0,contemporary:0,country:1}},
+      {emoji:"🎋",label:"Architectural plants only",note:"A single dramatic palm or snake plant. Form over foliage.",
+       scores:{japandi:1,scandi:0,industrial:2,cottage:0,eclectic:0,midcentury:2,bohemian:0,classic:1,contemporary:2,country:0}}
+    ]
+  },
+  {
+    text:"Your bedroom should feel like...",
+    subtext:"The last vibe before you fall asleep.",
+    answers:[
+      {emoji:"🧘",label:"A meditation retreat",note:"Utterly still. Nothing unnecessary. Pure peace.",
+       scores:{japandi:3,scandi:1,industrial:1,cottage:0,eclectic:0,midcentury:1,bohemian:0,classic:0,contemporary:1,country:0}},
+      {emoji:"☁️",label:"A cloud you never want to leave",note:"Soft, layered, impossibly cosy",
+       scores:{japandi:0,scandi:3,industrial:0,cottage:2,eclectic:0,midcentury:0,bohemian:1,classic:1,contemporary:0,country:2}},
+      {emoji:"🌍",label:"A global traveller's boudoir",note:"Textiles, colour, things collected over a lifetime",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:0,eclectic:2,midcentury:0,bohemian:3,classic:0,contemporary:0,country:0}},
+      {emoji:"🎬",label:"A boutique hotel suite",note:"Elegant, curated, a little theatrical",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:0,eclectic:1,midcentury:1,bohemian:0,classic:2,contemporary:3,country:0}}
+    ]
+  },
+  {
+    text:"When you're buying furniture, what matters most?",
+    subtext:"Be honest — what actually drives the decision?",
+    answers:[
+      {emoji:"🌳",label:"Natural materials & provenance",note:"Where it came from, what it's made of, how honest it is",
+       scores:{japandi:2,scandi:2,industrial:1,cottage:1,eclectic:0,midcentury:2,bohemian:1,classic:1,contemporary:0,country:2}},
+      {emoji:"⏳",label:"Will it look good in 20 years?",note:"Timelessness over trends, every single time",
+       scores:{japandi:1,scandi:1,industrial:0,cottage:1,eclectic:0,midcentury:2,bohemian:0,classic:3,contemporary:1,country:2}},
+      {emoji:"🔥",label:"Is it a conversation piece?",note:"Something unexpected, something people will ask about",
+       scores:{japandi:0,scandi:0,industrial:1,cottage:0,eclectic:3,midcentury:2,bohemian:1,classic:0,contemporary:2,country:0}},
+      {emoji:"✅",label:"Does it work perfectly?",note:"Function first. It has to earn its place.",
+       scores:{japandi:2,scandi:1,industrial:2,cottage:0,eclectic:0,midcentury:1,bohemian:0,classic:1,contemporary:2,country:1}}
+    ]
+  },
+  {
+    text:"Your dream kitchen is...",
+    subtext:"Where you'd most love to make a cup of tea.",
+    answers:[
+      {emoji:"🍵",label:"Handleless, stone worktop, all white",note:"Calm, clean, every surface clear",
+       scores:{japandi:2,scandi:1,industrial:1,cottage:0,eclectic:0,midcentury:0,bohemian:0,classic:0,contemporary:3,country:0}},
+      {emoji:"🌾",label:"Shaker cabinets & a farmhouse sink",note:"Painted in sage or navy, copper taps, wooden open shelves",
+       scores:{japandi:0,scandi:1,industrial:0,cottage:2,eclectic:0,midcentury:0,bohemian:0,classic:2,contemporary:0,country:3}},
+      {emoji:"⚙️",label:"Industrial steel & open shelving",note:"Like a professional kitchen — raw, functional, honest",
+       scores:{japandi:0,scandi:0,industrial:3,cottage:0,eclectic:1,midcentury:1,bohemian:0,classic:0,contemporary:1,country:0}},
+      {emoji:"🎨",label:"Colourful tiles & open display",note:"Personality everywhere — ceramics out, collections on show",
+       scores:{japandi:0,scandi:0,industrial:0,cottage:2,eclectic:2,midcentury:1,bohemian:3,classic:1,contemporary:0,country:1}}
+    ]
+  }
+];
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let current = 0;
+let answers = new Array(questions.length).fill(null);
+
+function startQuiz(){
+  current = 0;
+  answers = new Array(questions.length).fill(null);
+  renderQuestion();
+  showScreen('quiz');
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+
+function renderQuestion(){
+  const q = questions[current];
+  document.getElementById('qNumber').textContent = `Question ${current+1}`;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('qSubtext').textContent = q.subtext;
+  document.getElementById('progressFill').style.width = ((current/questions.length)*100)+'%';
+  document.getElementById('progressLabel').textContent = `${current+1} of ${questions.length}`;
+
+  const grid = document.getElementById('answersGrid');
+  grid.innerHTML = '';
+  q.answers.forEach((a,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn'+(answers[current]===i?' selected':'');
+    btn.innerHTML = `<span class="answer-emoji">${a.emoji}</span><div><div class="answer-label">${a.label}</div><div class="answer-note">${a.note}</div></div>`;
+    btn.onclick = () => selectAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  const nextBtn = document.getElementById('btnNext');
+  nextBtn.textContent = current === questions.length-1 ? 'See my style blend! →' : 'Next →';
+  nextBtn.classList.toggle('enabled', answers[current] !== null);
+  document.getElementById('btnBack').style.visibility = current===0?'hidden':'visible';
+}
+
+function selectAnswer(idx){
+  answers[current] = idx;
+  document.querySelectorAll('.answer-btn').forEach((b,i) => b.classList.toggle('selected', i===idx));
+  document.getElementById('btnNext').classList.add('enabled');
+}
+
+function nextQuestion(){
+  if(answers[current]===null) return;
+  if(current < questions.length-1){ current++; renderQuestion(); }
+  else { showScreen('email'); }
+}
+
+function prevQuestion(){
+  if(current>0){ current--; renderQuestion(); }
+}
+
+// ═══════════════════════════════════════
+// SCORING — returns sorted array
+// ═══════════════════════════════════════
+function calcScores(){
+  const totals = {};
+  Object.keys(styles).forEach(k => totals[k]=0);
+  questions.forEach((q,qi)=>{
+    if(answers[qi]!==null){
+      const s = q.answers[answers[qi]].scores;
+      Object.keys(s).forEach(k => totals[k]+=s[k]);
+    }
+  });
+  // Convert to percentages
+  const total = Object.values(totals).reduce((a,b)=>a+b,0)||1;
+  const pcts = {};
+  Object.keys(totals).forEach(k => pcts[k]=Math.round((totals[k]/total)*100));
+  // Sort descending
+  return Object.entries(pcts).sort((a,b)=>b[1]-a[1]);
+}
+
+// ═══════════════════════════════════════
+// EMAIL GATE
+// ═══════════════════════════════════════
+function revealResult(){
+  const email = document.getElementById('emailInput').value;
+  if(!email||!email.includes('@')){
+    document.getElementById('emailInput').style.borderColor='#E8522A';
+    document.getElementById('emailInput').placeholder='Please enter a valid email 😊';
+    return;
+  }
+  // → Connect to Mailchimp/ConvertKit here
+  buildResult();
+  showScreen('result');
+}
+function skipEmail(){ buildResult(); showScreen('result'); }
+
+// ═══════════════════════════════════════
+// BUILD RESULT
+// ═══════════════════════════════════════
+function buildResult(){
+  const sorted = calcScores();
+  const [primaryKey, primaryPct] = sorted[0];
+  const [secondaryKey, secondaryPct] = sorted[1];
+
+  // Recalculate so primary+secondary feel meaningful
+  // Redistribute to show just top 2 proportionally
+  const rawSum = sorted[0][1]+sorted[1][1];
+  const adjPrimary = Math.round((sorted[0][1]/rawSum)*100);
+  const adjSecondary = 100-adjPrimary;
+
+  const p = styles[primaryKey];
+  const s = styles[secondaryKey];
+
+  const swatchesHtml = p.palette.map(sw=>`
+    <div class="swatch-item">
+      <div class="swatch" style="background:${sw.hex}"></div>
+      <div class="swatch-name">${sw.name}</div>
+      <div class="swatch-hex">${sw.hex}</div>
+    </div>
+  `).join('');
+
+  const piecesHtml = p.pieces.map(pc=>`<li><span class="piece-dot">◆</span>${pc}</li>`).join('');
+
+  document.getElementById('resultCard').innerHTML = `
+
+    <!-- HERO PHOTO -->
+    <div class="result-photo-wrap">
+      <img class="result-photo" src="${p.photo}" alt="${p.name} interior" loading="eager"
+           onerror="this.style.background='linear-gradient(135deg,#C8B8A2,#8C7B6B)'; this.style.height='100%';">
+      <div class="result-photo-overlay"></div>
+      <div class="result-photo-badge">${p.emoji} Your Style Result</div>
+      <div class="result-photo-title">
+        <div class="result-primary-label">You are primarily...</div>
+        <div class="result-photo-name"><em>${p.name}</em></div>
+      </div>
+    </div>
+
+    <!-- PERCENTAGE BREAKDOWN -->
+    <div class="result-percentages">
+      <div class="pct-label">Your unique style blend</div>
+
+      <div class="pct-row primary">
+        <div class="pct-top">
+          <div class="pct-style-name"><span class="pct-style-emoji">${p.emoji}</span>${p.name}</div>
+          <div class="pct-num" id="pctNum1">0%</div>
+        </div>
+        <div class="pct-track"><div class="pct-fill" id="pctFill1" style="width:0%"></div></div>
+      </div>
+
+      <div style="height:14px"></div>
+
+      <div class="pct-row secondary">
+        <div class="pct-top">
+          <div class="pct-style-name"><span class="pct-style-emoji">${s.emoji}</span>${s.name} <span style="font-size:11px; font-weight:600; color:var(--light); margin-left:4px;">— your secondary style</span></div>
+          <div class="pct-num" id="pctNum2">0%</div>
+        </div>
+        <div class="pct-track"><div class="pct-fill" id="pctFill2" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- MAIN BODY -->
+    <div class="result-body">
+
+      <div class="result-traits">
+        ${p.traits.map(t=>`<span class="trait">${t}</span>`).join('')}
+      </div>
+
+      <p class="result-desc">${p.desc}</p>
+
+      <!-- SECONDARY STYLE BLEND CARD -->
+      <div class="secondary-blend">
+        <img class="secondary-photo" src="${s.photo}" alt="${s.name}"
+             onerror="this.style.background='linear-gradient(135deg,#A8C4A2,#7A9C6E)';">
+        <div class="secondary-info">
+          <div class="secondary-top">✦ Your secondary style (${adjSecondary}%)</div>
+          <div class="secondary-name">${s.emoji} ${s.name}</div>
+          <div class="secondary-desc">${s.desc.split('.')[0]}. Lean into this when you want to add warmth and personality to your primary style.</div>
+        </div>
+      </div>
+
+      <!-- PALETTE -->
+      <div class="palette-row">
+        <div class="palette-label">Your ${p.name} Colour Palette</div>
+        <div class="palette-swatches">${swatchesHtml}</div>
+      </div>
+
+      <!-- PIECES -->
+      <div class="pieces-label">✦ Signature pieces for your style</div>
+      <ul class="pieces-list">${piecesHtml}</ul>
+
+      <!-- MISTAKE -->
+      <div class="mistake-box">
+        <div class="mistake-title">⚠ The ${p.name} mistake to avoid</div>
+        <div class="mistake-text">${p.mistake}</div>
+      </div>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="result-cta">
+      <div>
+        <div class="cta-eyebrow">Free Download</div>
+        <div class="cta-headline">Before you shop — read this first</div>
+        <div class="cta-sub">The Before-You-Buy Checklist. Prevent expensive mistakes.</div>
+      </div>
+      <button class="btn-cta" onclick="alert('Add your Gumroad checklist link here!')">Grab it →</button>
+    </div>
+  `;
+
+  // Animate percentage bars after render
+  setTimeout(()=>{
+    document.getElementById('pctFill1').style.width = adjPrimary+'%';
+    document.getElementById('pctNum1').textContent = adjPrimary+'%';
+    document.getElementById('pctFill2').style.width = adjSecondary+'%';
+    document.getElementById('pctNum2').textContent = adjSecondary+'%';
+  }, 300);
+}
+
+function retakeQuiz(){
+  current=0; answers=new Array(questions.length).fill(null);
+  startQuiz();
+}
+</script>
+</body>
+</html>
